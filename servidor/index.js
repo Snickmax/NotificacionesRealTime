@@ -31,22 +31,26 @@ function sendRandomNotification() {
     io.emit('receiveNotification', { message });
   } else {
     io.to(users[randomUser]).emit(`receiveNotification_${randomUser}`, { message });
+    console.log(`receiveNotification_${randomUser}`);
   }
 }
 
 io.on('connection', (socket) => {
   socket.on('connectUser', (userId) => {
     users[userId] = socket.id;
+    console.log(`Usuario ${userId} conectado.`);
   });
 
   socket.on('disconnectUser', (userId) => {
     // delete users[userId];
+    console.log(`Usuario ${userId} desconectado.`);
   });
 
   socket.on('disconnect', () => {
     const disconnectedUser = Object.keys(users).find((key) => users[key] === socket.id);
     if (disconnectedUser) {
       delete users[disconnectedUser];
+      console.log(`Usuario ${disconnectedUser} desconectado.`);
     }
   });
 });
