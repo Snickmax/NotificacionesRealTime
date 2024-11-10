@@ -1,0 +1,87 @@
+.container {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.user-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.user-box {
+  border: 1px solid #ddd;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.user-avatar {
+  width: 50px;
+  height: 50px;
+  background-color: #ccc;
+  border-radius: 50%;
+}
+
+.status-indicator {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  margin-left: 10px;
+}
+
+.connect-button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+}
+
+.connect-button:hover {
+  background-color: #0056b3;
+}
+
+.notifications-box {
+  margin-top: 10px;
+  border-top: 1px solid #ddd;
+  padding-top: 10px;
+}
+
+.notifications-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bell-icon {
+  font-size: 18px;
+}
+
+.badge {
+  background-color: red;
+  color: white;
+  padding: 2px 5px;
+  border-radius: 10px;
+  margin-left: 5px;
+  font-size: 12px;
+}
+
+.notifications-list {
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.notification-item {
+  background-color: #f9f9f9;
+  padding: 5px;
+  margin: 5px 0;
+  border-radius: 5px;
+}
