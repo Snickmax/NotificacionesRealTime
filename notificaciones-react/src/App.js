@@ -7,32 +7,46 @@ const USERS = ['user1', 'user2', 'user3', 'user4'];
 
 function UserComponent({ userId }) {
   const [isConnected, setIsConnected] = useState(false);
-  const [notifications, setNotifications] = useState([]);
   const [unreadNotifications, setUnreadNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [viewedNotifications, setViewedNotifications] = useState([]);
 
-  // Función para conectar/desconectar usuario
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await fetch(`http://localhost:4000/notifications/${userId}`);
+        const data = await response.json();
+        console.log("Notificaciones cargadas:", data);
+
+        const unread = data.filter(notification => notification.status === "no visto");
+        const read = data.filter(notification => notification.status === "visto");
+        setViewedNotifications(read);
+        setUnreadNotifications(unread);
+        setUnreadCount(unread.length);
+      } catch (error) {
+        console.error("Error al cargar notificaciones:", error);
+      }
+    };
+    fetchNotifications();
+  }, [userId]);
+
   const toggleConnection = () => {
     if (isConnected) {
       socket.emit('disconnectUser', userId);
       setIsConnected(false);
-      setUnreadCount(unreadNotifications.length); // Mantener conteo si se desconecta
+      setUnreadCount(unreadNotifications.length);
     } else {
       socket.emit('connectUser', userId);
       setIsConnected(true);
-      setUnreadCount(unreadNotifications.length); // Restaurar conteo al reconectar
+      setUnreadCount(unreadNotifications.length);
     }
   };
 
-  // Escuchar notificaciones en tiempo real solo si está conectado
   useEffect(() => {
     const handleNotification = (notification) => {
       if (isConnected) {
-        // Mostrar notificación si está conectado
-        setNotifications((prev) => [...prev, notification]);
+        setViewedNotifications((prev) => [...prev, notification]);
       } else {
-        // Almacenar en no vistas si está desconectado
         setUnreadNotifications((prev) => [...prev, notification]);
         setUnreadCount((prev) => prev + 1);
       }
@@ -47,19 +61,58 @@ function UserComponent({ userId }) {
     };
   }, [isConnected, userId]);
 
-  // Mostrar mensajes no vistos al pulsar la campana
-  const handleBellClick = () => {
-    if (!isConnected) return; // Evitar pulsar cuando está desconectado
-    setNotifications((prev) => [...prev, ...unreadNotifications]);
-    setViewedNotifications((prev) => [...prev, ...unreadNotifications].slice(-20));
+  const handleBellClick = async () => {
+
+    const updatedNotifications = unreadNotifications.map(notif => ({
+      ...notif,
+      status: "visto"
+    }));
+
+    console.log("Notificaciones actualizadas para marcar como vistas:", updatedNotifications, userId);
+
+    setViewedNotifications(prev => [...prev, ...updatedNotifications]);
     setUnreadNotifications([]);
     setUnreadCount(0);
+
+    try {
+      const response = await fetch(`http://localhost:4000/notifications/markAsRead`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ userId: userId, notifications: updatedNotifications })
+      });
+      if (!response.ok) throw new Error("Error al marcar como visto en el backend");
+      console.log("Notificaciones marcadas como vistas en el backend");
+    } catch (error) {
+      console.error("Error al marcar como visto:", error);
+    }
   };
 
-  // Limpiar las notificaciones vistas
-  const clearNotifications = () => {
-    setNotifications([]);
-    setViewedNotifications([]);
+  const clearNotifications = async () => {
+    if (viewedNotifications.length === 0) return;
+
+    try {
+      const response = await fetch(`http://localhost:4000/notifications/delete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userId: userId,
+          notifications: viewedNotifications // Aquí enviamos todas las notificaciones a eliminar
+        })
+      });
+
+      if (!response.ok) throw new Error("Error al eliminar notificaciones en el backend");
+
+      console.log("Notificaciones eliminadas en el backend");
+
+      // Limpia las notificaciones en el frontend
+      setViewedNotifications([]);
+    } catch (error) {
+      console.error("Error al eliminar notificaciones:", error);
+    }
   };
 
   return (
@@ -82,19 +135,12 @@ function UserComponent({ userId }) {
             <i className="bell-icon">🔔</i>
             {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
           </button>
-          <button className="clear-button" onClick={clearNotifications}>
+          <button className="clear-button" onClick={clearNotifications} disabled={!isConnected}>
             Limpiar
           </button>
         </div>
         <div className="notifications-list">
-          {/* Historial de notificaciones vistas */}
           {viewedNotifications.map((notif, index) => (
-            <div key={index} className="notification-item">
-              {notif.message}
-            </div>
-          ))}
-          {/* Mostrar las últimas 20 notificaciones */}
-          {notifications.slice(-20).map((notif, index) => (
             <div key={index} className="notification-item">
               {notif.message}
             </div>
