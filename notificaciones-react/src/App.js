@@ -21,7 +21,7 @@ function UserComponent({ userId }) {
     } else {
       socket.emit('connectUser', userId);
       setIsConnected(true);
-      setUnreadCount(0); // Resetear contador al conectarse
+      setUnreadCount(unreadNotifications.length); // Restaurar conteo al reconectar
     }
   };
 
@@ -49,10 +49,17 @@ function UserComponent({ userId }) {
 
   // Mostrar mensajes no vistos al pulsar la campana
   const handleBellClick = () => {
+    if (!isConnected) return; // Evitar pulsar cuando está desconectado
     setNotifications((prev) => [...prev, ...unreadNotifications]);
     setViewedNotifications((prev) => [...prev, ...unreadNotifications].slice(-20));
     setUnreadNotifications([]);
     setUnreadCount(0);
+  };
+
+  // Limpiar las notificaciones vistas
+  const clearNotifications = () => {
+    setNotifications([]);
+    setViewedNotifications([]);
   };
 
   return (
@@ -67,9 +74,16 @@ function UserComponent({ userId }) {
       <div className="notifications-box">
         <div className="notifications-header">
           <span>Notificaciones</span>
-          <button className="clear-button" onClick={handleBellClick}>
+          <button
+            className="clear-button"
+            onClick={handleBellClick}
+            disabled={!isConnected}
+          >
             <i className="bell-icon">🔔</i>
             {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
+          </button>
+          <button className="clear-button" onClick={clearNotifications}>
+            Limpiar
           </button>
         </div>
         <div className="notifications-list">

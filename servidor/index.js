@@ -29,6 +29,7 @@ function sendRandomNotification() {
 
   if (isGlobal) {
     io.emit('receiveNotification', { message });
+    console.log(`receiveNotification_Global`);
   } else {
     io.to(users[randomUser]).emit(`receiveNotification_${randomUser}`, { message });
     console.log(`receiveNotification_${randomUser}`);
