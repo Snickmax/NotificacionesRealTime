@@ -47,7 +47,7 @@ async function sendRandomNotification() {
 
   const randomIndex = Math.floor(Math.random() * userIds.length);
   const randomUser = userIds[randomIndex];
-  const isGlobal = Math.random() > 1;
+  const isGlobal = Math.random() > 0.5;
 
   const message = isGlobal
     ? 'Mensaje global para todos los usuarios.'
